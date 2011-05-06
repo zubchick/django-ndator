@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from django.core.management.base import CommandError
-from random import randint, randrange
+from random import randint, randrange, choice, random
 from StringIO import StringIO
-from datetime import datetime, timedelta, date
-
+from datetime import datetime, date, time
+from md5 import md5
 
 class NdaModel(object):
 
@@ -58,6 +58,10 @@ class NdaModel(object):
 
 
 class NdaField(object):
+    DOMAINS = ['example.com', 'test.ok', 'some.org',
+               'ololo.net', 'somebody.neme', 'whatabout.me',
+               'yandex.ru', 'localhost', 'pisem.net']
+
     def __init__(self, source_file=None):
         if source_file:
             with open(source_file) as f:
@@ -80,6 +84,16 @@ class IntegerNda(NdaField):
             res = randint(self.min, self.max)
 
         return res
+
+
+class FloatField(IntegerNda):
+    def __init__(self, min_value=None, max_value=None):
+        self.min = int(min_value)
+        self.max = int(max_value) - 1
+
+    def obfuscate(self, value):
+        intg = super(FloatField, self).obfuscate(value)
+        return intg + random()
 
 
 class BooleanNda(NdaField):
@@ -125,21 +139,21 @@ class FirstNameNda(NdaField):
             randint(0, len(text_lines)-1)].split(self.sep)[self.part].strip()
 
 
-class LastNameNda(FirsNameNda):
+class LastNameNda(FirstNameNda):
     def __init__(self, source_file='texts/names.txt', sep=' '):
         super(LastNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 1
 
 
-class MiddleNameNda(FirsNameNda):
+class MiddleNameNda(FirstNameNda):
     def __init__(self, source_file='texts/names.txt', sep=' '):
         super(MiddleNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 2
 
 
-class LoginNda(FirsNameNda):
+class LoginNda(FirstNameNda):
     def __init__(self, source_file='texts/login.txt', sep=' '):
         super(LoginNda, self).__init__(source_file, sep)
 
@@ -162,6 +176,31 @@ class DateTimeNda(DateNda):
                         hour=randrange(12), minute=randrange(60),
                         second=randrange(60))
 
+
+class TimeNda(NdaField):
+    def obfuscate(self, value):
+        return time(hour=randrange(12), minute=randrange(60),
+                    second=randrange(60))
+
+
 class EmailNda(LoginNda):
     def obfuscate(self, value):
-        domains = ['example.com', 'test.ok']
+        last = choice(self.DOMAINS)
+        first = super(LoginNda, self).obfuscate(value.split('@')[0])
+        return first + u'@' + last
+
+
+class IpAdressNda(NdaField):
+    def obfuscate(self, value):
+        return '.'.join([unicode(randint(1, 255)) for i in range(4)])
+
+
+class IpAdressNda(NdaField):
+    def obfuscate(self, value):
+        return choice([True, False, None])
+
+
+class URLNda(NdaField):
+    def obfuscate(self, value):
+        h = md5(str(datetime.now())).hexdigest()[:16]
+        return u'http://%s/%s' %(choice(self.DOMAINS), h)
