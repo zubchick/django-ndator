@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from django.core.management.base import CommandError
-from random import randint
+from random import randint, randrange
 from StringIO import StringIO
+from datetime import datetime, timedelta, date
+
 
 class NdaModel(object):
 
@@ -10,7 +12,7 @@ class NdaModel(object):
     def fields_for_nda(cls):
         """
         Return a ``List`` contaiining field for the model
-        that decared in Meta
+        that declared in Meta
 
         if in Meta ``fields`` or/and ``exclude``:
 
@@ -106,32 +108,60 @@ class CharNda(NdaField):
         return res
 
 
-class FirsNameNda(NdaField):
+class FirstNameNda(NdaField):
     def __init__(self, source_file='texts/names.txt', sep=' '):
-        super(CharNda, self).__init__(source_file)
+        super(FirstNameNda, self).__init__(source_file)
         self.sep = sep
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 0
 
     def obfuscate(self, value):
         """ source file shuld be in
-        <firstname><separator><lastname><separator><middlename>
+        <firstname><separator><lastname><separator>[middlename]
         """
         text_lines = self.source.read().splitlines()
 
-        return text_lines[randint(0, len(text_lines)-1)].split(self.sep)[self.part]
+        return text_lines[
+            randint(0, len(text_lines)-1)].split(self.sep)[self.part].strip()
 
 
 class LastNameNda(FirsNameNda):
     def __init__(self, source_file='texts/names.txt', sep=' '):
-        super(LastNameNda, self).__init__(source_file)
+        super(LastNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 1
 
 
 class MiddleNameNda(FirsNameNda):
     def __init__(self, source_file='texts/names.txt', sep=' '):
-        super(LastNameNda, self).__init__(source_file)
+        super(MiddleNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 2
 
+
+class LoginNda(FirsNameNda):
+    def __init__(self, source_file='texts/login.txt', sep=' '):
+        super(LoginNda, self).__init__(source_file, sep)
+
+    def obfuscate(self, value):
+        text_lines = self.source.read().splitlines()
+        return text_lines[randint(0, len(text_lines)-1)].strip()
+
+
+class DateNda(NdaField):
+    def obfuscate(self, value):
+        start_date = date.today().replace(year=1901).toordinal()
+        end_date = date.today().toordinal()
+        return date.fromordinal(randint(start_date, end_date))
+
+
+class DateTimeNda(DateNda):
+    def obfuscate(self, value):
+        rnd = super(DateTimeNda, self).obfuscate(value)
+        return datetime(year=rnd.year, month=rnd.month, day=rnd.day,
+                        hour=randrange(12), minute=randrange(60),
+                        second=randrange(60))
+
+class EmailNda(LoginNda):
+    def obfuscate(self, value):
+        domains = ['example.com', 'test.ok']
