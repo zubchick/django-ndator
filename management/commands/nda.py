@@ -1,24 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from django.core.management.base import NoArgsCommand, CommandError
-from django.db import connections, DEFAULT_DB_ALIAS, models
+from django.db import  DEFAULT_DB_ALIAS, models
 
 from optparse import make_option
 from ndator.nda import NdaModel
 import inspect
-
-def field_for_nda(model, fields=None, exclude=None):
-    opts = model._meta
-    field_list = []
-
-    for f in opts.fields:
-        if fields is not None and not f.name in fields:
-            continue
-        if exclude and f.name in exclude:
-            continue
-        field_list.append(f)
-
-    return field_list
 
 
 def get_nda_models():
@@ -29,7 +16,7 @@ def get_nda_models():
     try:
         import ndamodels
     except ImportError:
-        raise ImportError("Create ndamodels.py in project dir or use --all option.")
+        raise CommandError("Create ndamodels.py in project dir or use --allauto option.")
 
     for elem in dir(ndamodels):
         obj = getattr(ndamodels, elem)
@@ -63,10 +50,7 @@ class Command(NoArgsCommand):
         else:
             models_for_nda = models.get_models()
 
+        print models_for_nda
+        for m in models_for_nda:
+            print map(lambda x: x.verbose_name, m.fields_for_nda())
 
-        import ipdb; ipdb.set_trace()
-
-    def handle_inspection(self, options):
-        connection = connections[options.get('database', DEFAULT_DB_ALIAS)]
-        c = connection.cursor()
-        import ipdb; ipdb.set_trace()

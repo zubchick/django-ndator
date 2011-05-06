@@ -1,0 +1,4 @@
+*flymake*
+ropeproject/
+*.pyc
+
