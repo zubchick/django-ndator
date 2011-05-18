@@ -1,61 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from django.core.management.base import CommandError
 from random import randint, randrange, choice, random
 from StringIO import StringIO
 from datetime import datetime, date, time
-from md5 import md5
-
-class NdaModel(object):
-
-    @classmethod
-    def fields_for_nda(cls):
-        """
-        Return a ``List`` contaiining field for the model
-        that declared in Meta
-
-        if in Meta ``fields`` or/and ``exclude``:
-
-        ``fields`` is an optional list of field names. If provided, only the named
-        fields will be included in the returned fields.
-
-        ``exclude`` is an optional list of field names. If provided, the named
-        fields will be excluded from the returned fields, even if they are listed
-        in the ``fields`` argument.
-        """
-        try:
-            model = cls.Meta.model
-        except AttributeError:
-            raise CommandError("Specify model in `Meta` class")
-
-        fields = getattr(cls.Meta, 'fields', None)
-        exclude = getattr(cls.Meta, 'exclude', None)
-        opts = model._meta
-        field_list = []
-
-        for f in opts.fields:
-            if fields is not None and not f.name in fields:
-                continue
-            if exclude and f.name in exclude:
-                continue
-            if f.auto_created:
-                continue
-            if f.rel:
-                continue
-            field_list.append(f)
-
-        return field_list
-
-    @classmethod
-    def map_fields(cls, map):
-        """
-        Return dict {ModelField: NdaModelField, ...}
-        """
-        fields = cls.fields_for_nda()
-
-        for f in fields:
-            pass
-
+from hashlib import md5
 
 class NdaField(object):
     DOMAINS = ['example.com', 'test.ok', 'some.org',
@@ -79,20 +27,21 @@ class IntegerNda(NdaField):
     def obfuscate(self, value):
         if not (self.min and self.max):
             len_ = len(str(value)) - 1
-            res = randint(10 ** len_, 10 ** (len_ + 1) - 1)
+            res = (randint(10 ** len_, 10 ** (len_ + 1) - 1) *
+                   (choice([-1, 1]) if value < 0 else 1))
         else:
             res = randint(self.min, self.max)
 
         return res
 
 
-class FloatField(IntegerNda):
+class FloatFieldNda(IntegerNda):
     def __init__(self, min_value=None, max_value=None):
         self.min = int(min_value)
         self.max = int(max_value) - 1
 
     def obfuscate(self, value):
-        intg = super(FloatField, self).obfuscate(value)
+        intg = super(FloatFieldNda, self).obfuscate(value)
         return intg + random()
 
 
@@ -102,18 +51,18 @@ class BooleanNda(NdaField):
 
 
 class CharNda(NdaField):
-    def __init__(self, source_file='texts/lorem.txt',
-                 min_len=None, max_len=None):
+    def __init__(self, source_file='ndator/texts/lorem.txt',
+                 min_length=None, max_length=None):
         super(CharNda, self).__init__(source_file)
-        self.min = min_len
-        self.max = max_len
+        self.min = min_length
+        self.max = max_length
 
     def obfuscate(self, value):
         text = self.source.read()
         if self.min and self.max:
             res = text[:randint(self.min, self.max)]
         elif self.max:
-            res = text[:randint(1, self.max)]
+            res = text[:randint(self.max / 2 + 1, self.max)]
         elif self.min:
             res = text[:randint(self.min, len(text))]
         else:
@@ -123,7 +72,7 @@ class CharNda(NdaField):
 
 
 class FirstNameNda(NdaField):
-    def __init__(self, source_file='texts/names.txt', sep=' '):
+    def __init__(self, source_file='ndator/texts/names.txt', sep=' '):
         super(FirstNameNda, self).__init__(source_file)
         self.sep = sep
         # part: 0 - firstname, 1 - lastname, 2 - middlename
@@ -140,21 +89,21 @@ class FirstNameNda(NdaField):
 
 
 class LastNameNda(FirstNameNda):
-    def __init__(self, source_file='texts/names.txt', sep=' '):
+    def __init__(self, source_file='ndator/texts/names.txt', sep=' '):
         super(LastNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 1
 
 
 class MiddleNameNda(FirstNameNda):
-    def __init__(self, source_file='texts/names.txt', sep=' '):
+    def __init__(self, source_file='ndator/texts/names.txt', sep=' '):
         super(MiddleNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 2
 
 
 class LoginNda(FirstNameNda):
-    def __init__(self, source_file='texts/login.txt', sep=' '):
+    def __init__(self, source_file='ndator/texts/login.txt', sep=' '):
         super(LoginNda, self).__init__(source_file, sep)
 
     def obfuscate(self, value):
@@ -190,17 +139,22 @@ class EmailNda(LoginNda):
         return first + u'@' + last
 
 
-class IpAdressNda(NdaField):
+class IPAdressNda(NdaField):
     def obfuscate(self, value):
-        return '.'.join([unicode(randint(1, 255)) for i in range(4)])
+        return u'.'.join([unicode(randint(1, 255)) for i in range(4)])
 
 
-class IpAdressNda(NdaField):
+class NullBooleanNda(NdaField):
     def obfuscate(self, value):
         return choice([True, False, None])
 
 
 class URLNda(NdaField):
     def obfuscate(self, value):
-        h = md5(str(datetime.now())).hexdigest()[:16]
+        h = md5(str(datetime.now()) + value).hexdigest()[:16]
         return u'http://%s/%s' %(choice(self.DOMAINS), h)
+
+
+class HashNda(NdaField):
+    def obfuscate(self, value):
+        return md5(str(value)).hexdigest()

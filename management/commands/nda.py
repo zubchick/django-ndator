@@ -50,7 +50,10 @@ class Command(NoArgsCommand):
         else:
             models_for_nda = models.get_models()
 
-        print models_for_nda
+        # print models_for_nda
+        import ipdb;ipdb.set_trace()
         for m in models_for_nda:
-            print map(lambda x: x.verbose_name, m.fields_for_nda())
+            print "%s:" % m
+            print map(lambda x: "%s: %s" % (x.name, x), m.fields_for_nda())
+
 
