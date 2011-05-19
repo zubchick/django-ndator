@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.core.management.base import NoArgsCommand, CommandError
-from django.db import  DEFAULT_DB_ALIAS, models
+from django.db import models
 
 from optparse import make_option
 from ndator.nda import NdaModel
@@ -28,6 +28,11 @@ def get_nda_models():
 
     return class_list
 
+def autoconvert_to_nda(model):
+    """ Auto convert django model to NdaModel """
+    meta = type('Meta', (), {'model': model})
+    return type(model.__name__ + 'Nda', (NdaModel,), {'Meta': meta})
+
 
 class Command(NoArgsCommand):
     help = ""
@@ -35,9 +40,6 @@ class Command(NoArgsCommand):
     db_module = 'django.db'
 
     option_list = NoArgsCommand.option_list + (
-        make_option('--database', action='store', dest='database',
-                    default=DEFAULT_DB_ALIAS, help='Nominates a database to '
-                    'introspect.  Defaults to using the "default" database.'),
         make_option('--allauto', action='store_true', dest='allauto',
                     default=False, help='Try to make obfuscation with default'
                     'settings'),
@@ -45,15 +47,28 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
         allauto = options.get('allauto')
+        answ = ''
+        while answ != 'YES':
+            answ = raw_input('Are you realy shure? (yes/no): ').upper()
+            if answ == 'NO':
+                return
+            elif answ != 'YES':
+                print 'type only yes or no'
+        else:
+            print
+
         if not allauto:
             models_for_nda = get_nda_models()
         else:
-            models_for_nda = models.get_models()
+            models_for_nda = [autoconvert_to_nda(m) for m in models.get_models()]
 
-        # print models_for_nda
-        import ipdb;ipdb.set_trace()
         for m in models_for_nda:
-            print "%s:" % m
-            print map(lambda x: "%s: %s" % (x.name, x), m.fields_for_nda())
-
-
+            print m.Meta.model.__name__,
+            div = int(m.Meta.model.objects.count() / 20) + 1
+            objects = m.Meta.model.objects.all()
+            for i, obj in enumerate(objects, 1):
+                m(obj).obfuscation()
+                if not i % div:
+                    print '.',
+            else:
+                print

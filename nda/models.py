@@ -114,3 +114,7 @@ class NdaModel(object):
 
     def obfuscation(self):
         rules = self.map_fields()
+        for field, rule  in rules.items():
+            attr = getattr(self.instance, field)
+            setattr(self.instance, field, rule.obfuscate(attr))
+        self.instance.save()

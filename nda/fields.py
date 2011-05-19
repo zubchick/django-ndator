@@ -103,12 +103,17 @@ class MiddleNameNda(FirstNameNda):
 
 
 class LoginNda(FirstNameNda):
-    def __init__(self, source_file='ndator/texts/login.txt', sep=' '):
+    def __init__(self, source_file='ndator/texts/login.txt', sep=' ',
+                 unique=False):
         super(LoginNda, self).__init__(source_file, sep)
 
     def obfuscate(self, value):
         text_lines = self.source.read().splitlines()
-        return text_lines[randint(0, len(text_lines)-1)].strip()
+        if self.unique:
+            postf = str(int(md5(str(value)).hexdigest(), 16) % 1000)
+        else:
+            postf = ''
+        return text_lines[randint(0, len(text_lines)-1)].strip() + postf
 
 
 class DateNda(NdaField):
