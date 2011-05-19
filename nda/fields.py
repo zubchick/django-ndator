@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from random import randint, randrange, choice, random
-from StringIO import StringIO
 from datetime import datetime, date, time
 from hashlib import md5
 
@@ -13,7 +12,7 @@ class NdaField(object):
     def __init__(self, source_file=None):
         if source_file:
             with open(source_file) as f:
-                self.source = StringIO(f.read())
+                self.source = f.read().splitlines()
 
     def obfuscate(self, value):
         return value
@@ -58,7 +57,7 @@ class CharNda(NdaField):
         self.max = max_length
 
     def obfuscate(self, value):
-        text = self.source.read()
+        text = '\n'.join(self.source)
         if self.min and self.max:
             res = text[:randint(self.min, self.max)]
         elif self.max:
@@ -82,8 +81,7 @@ class FirstNameNda(NdaField):
         """ source file shuld be in
         <firstname><separator><lastname><separator>[middlename]
         """
-        text_lines = self.source.read().splitlines()
-
+        text_lines = self.source
         return text_lines[
             randint(0, len(text_lines)-1)].split(self.sep)[self.part].strip()
 
@@ -108,7 +106,7 @@ class LoginNda(FirstNameNda):
         super(LoginNda, self).__init__(source_file, sep)
 
     def obfuscate(self, value):
-        text_lines = self.source.read().splitlines()
+        text_lines = self.source
         if self.unique:
             postf = str(int(md5(str(value)).hexdigest(), 16) % 1000)
         else:

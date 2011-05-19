@@ -52,6 +52,16 @@ class NdaModel(object):
         return field_list
 
     @classmethod
+    def excluded_fields(cls):
+        ffnda = set([i.name for i in cls.fields_for_nda()])
+        try:
+            allfields = set([i.name for i in cls.Meta.model._meta.fields])
+        except:
+            raise CommandError("Specify model in `Meta` class")
+
+        return allfields - ffnda
+
+    @classmethod
     def map_fields(cls):
         """
         Return dict {'field': NdaModelField instance, ...}

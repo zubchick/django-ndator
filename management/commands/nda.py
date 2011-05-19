@@ -62,13 +62,44 @@ class Command(NoArgsCommand):
         else:
             models_for_nda = [autoconvert_to_nda(m) for m in models.get_models()]
 
+        excluded = {}
         for m in models_for_nda:
-            print m.Meta.model.__name__,
+            name = m.Meta.model.__name__
+
+            # collect excluded fields
+            exc = m.excluded_fields()
+            if exc:
+                excluded[name] = exc
+
             div = int(m.Meta.model.objects.count() / 20) + 1
             objects = m.Meta.model.objects.all()
+
+            # main loop
+            print name,
             for i, obj in enumerate(objects, 1):
                 m(obj).obfuscation()
+
+                # progressbar :)
                 if not i % div:
                     print '.',
             else:
                 print
+
+        print
+        # models and fields that didn't obfuscate
+        all_models = set([m.__name__ for m in models.get_models()])
+        use_models = set([m.Meta.model.__name__ for m in models_for_nda])
+        excluded_models = all_models - use_models
+
+
+        # display excluded
+        print 'Fields in models that did not obfuscate:\n'
+        for name, items in excluded.items():
+            print name
+            for item in sorted(items):
+                print '    ' + item
+            print
+
+        print 'Models that did not obfuscate:'
+        for model in excluded_models:
+            print model
