@@ -83,7 +83,7 @@ class NdaModel(object):
                 res[f.name] = BooleanNda()
 
             elif isinstance(f, (mfields.CharField, mfields.SlugField)):
-                res[f.name] = CharNda(max_length=f.max_length)
+                res[f.name] = CharNda(max_length=f.max_length, one_word=True)
 
             elif isinstance(f, mfields.DateField):
                 res[f.name] = DateNda()
@@ -102,14 +102,14 @@ class NdaModel(object):
                                 mfields.SmallIntegerField)):
                 res[f.name] = IntegerNda()
 
-            elif isinstance(f, mfields.IPAdressField):
+            elif isinstance(f, mfields.IPAddressField):
                 res[f.name] = IPAdressNda()
 
             elif isinstance(f, mfields.NullBooleanField):
                 res[f.name] = NullBooleanNda()
 
             elif isinstance(f, mfields.TextField):
-                res[f.name] = CharNda()
+                res[f.name] = CharNda(one_word=False)
 
             elif isinstance(f, mfields.TimeField):
                 res[f.name] = TimeNda()

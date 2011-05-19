@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import with_statement
+import os
 from random import randint, randrange, choice, random
 from datetime import datetime, date, time
+
 from hashlib import md5
+
+
+BASE_PATH = os.path.split(os.path.abspath(__file__))[0]
+
+BASE_PATH = os.path.join(BASE_PATH, '../')
+
 
 class NdaField(object):
     DOMAINS = ['example.com', 'test.ok', 'some.org',
-               'ololo.net', 'somebody.neme', 'whatabout.me',
-               'yandex.ru', 'localhost', 'pisem.net']
+               'ololo.net', 'somebody.name', 'whatabout.me',
+               'yandex.ru', 'localhost']
 
     def __init__(self, source_file=None):
         if source_file:
@@ -50,14 +59,21 @@ class BooleanNda(NdaField):
 
 
 class CharNda(NdaField):
-    def __init__(self, source_file='ndator/texts/lorem.txt',
-                 min_length=None, max_length=None):
+    def __init__(self, source_file=BASE_PATH+'texts/lorem.txt',
+                 min_length=None, max_length=None, one_word=True):
         super(CharNda, self).__init__(source_file)
         self.min = min_length
         self.max = max_length
+        self.one_word = one_word
 
     def obfuscate(self, value):
         text = '\n'.join(self.source)
+
+        if self.one_word:
+            words = text.split()
+            a = words[randint(0, len(words) - 1)]
+            return a
+
         if self.min and self.max:
             res = text[:randint(self.min, self.max)]
         elif self.max:
@@ -71,7 +87,7 @@ class CharNda(NdaField):
 
 
 class FirstNameNda(NdaField):
-    def __init__(self, source_file='ndator/texts/names.txt', sep=' '):
+    def __init__(self, source_file=BASE_PATH+'texts/names.txt', sep=' '):
         super(FirstNameNda, self).__init__(source_file)
         self.sep = sep
         # part: 0 - firstname, 1 - lastname, 2 - middlename
@@ -87,23 +103,24 @@ class FirstNameNda(NdaField):
 
 
 class LastNameNda(FirstNameNda):
-    def __init__(self, source_file='ndator/texts/names.txt', sep=' '):
+    def __init__(self, source_file=BASE_PATH+'texts/names.txt', sep=' '):
         super(LastNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 1
 
 
 class MiddleNameNda(FirstNameNda):
-    def __init__(self, source_file='ndator/texts/names.txt', sep=' '):
+    def __init__(self, source_file=BASE_PATH+'texts/names.txt', sep=' '):
         super(MiddleNameNda, self).__init__(source_file, sep)
         # part: 0 - firstname, 1 - lastname, 2 - middlename
         self.part = 2
 
 
 class LoginNda(FirstNameNda):
-    def __init__(self, source_file='ndator/texts/login.txt', sep=' ',
+    def __init__(self, source_file=BASE_PATH+'texts/login.txt', sep=' ',
                  unique=False):
         super(LoginNda, self).__init__(source_file, sep)
+        self.unique = unique
 
     def obfuscate(self, value):
         text_lines = self.source
@@ -138,7 +155,7 @@ class TimeNda(NdaField):
 class EmailNda(LoginNda):
     def obfuscate(self, value):
         last = choice(self.DOMAINS)
-        first = super(LoginNda, self).obfuscate(value.split('@')[0])
+        first = super(LoginNda, self).obfuscate(value)
         return first + u'@' + last
 
 
@@ -154,6 +171,7 @@ class NullBooleanNda(NdaField):
 
 class URLNda(NdaField):
     def obfuscate(self, value):
+        value = value or ''
         h = md5(str(datetime.now()) + value).hexdigest()[:16]
         return u'http://%s/%s' %(choice(self.DOMAINS), h)
 

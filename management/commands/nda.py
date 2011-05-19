@@ -76,7 +76,7 @@ class Command(NoArgsCommand):
 
             # main loop
             print name,
-            for i, obj in enumerate(objects, 1):
+            for i, obj in enumerate(objects):
                 m(obj).obfuscation()
 
                 # progressbar :)
