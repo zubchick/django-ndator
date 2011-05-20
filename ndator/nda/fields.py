@@ -76,7 +76,7 @@ class CharNda(NdaField):
         if self.min and self.max:
             res = text[:randint(self.min, self.max)]
         elif self.max:
-            res = text[:randint(self.max / 2 + 1, self.max)]
+            res = text[:randint(1, self.max / 2)]
         elif self.min:
             res = text[:randint(self.min, len(text))]
         else:
