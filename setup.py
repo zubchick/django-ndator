@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 version = __import__('ndator').__version__
-print find_packages()
+
 setup(
     name='django-ndator',
     version=version,
