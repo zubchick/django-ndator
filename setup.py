@@ -4,6 +4,13 @@ from setuptools import setup, find_packages
 
 version = __import__('ndator').__version__
 
+try:
+    file = open('README.rst')
+    long_description = file.read()
+except IOError:
+    long_description = ''
+
+
 setup(
     name='django-ndator',
     version=version,
@@ -11,7 +18,7 @@ setup(
     author_email='zubchick@gmail.com',
     url='http://github.com/zubchick/django-ndator',
     description='Django models obfuscator',
-    long_description=open('README.rst').read(),
+    long_description=long_description,
     license='New BSD License',
     packages=find_packages(),
     package_data = {'ndator': ['texts/*.txt']},
