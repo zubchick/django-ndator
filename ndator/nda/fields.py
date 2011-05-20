@@ -57,7 +57,7 @@ class BooleanNda(NdaField):
 
 class CharNda(NdaField):
     def __init__(self, source_file=BASE_PATH+'texts/lorem.txt',
-                 min_length=None, max_length=None, words=0):
+                 min_length=None, max_length=None, words=None):
         super(CharNda, self).__init__(source_file)
         self.min = min_length
         self.max = max_length
@@ -128,15 +128,16 @@ class MiddleNameNda(FirstNameNda):
 
 
 class LoginNda(FirstNameNda):
-    def __init__(self, source_file=BASE_PATH+'texts/login.txt', sep=' ',
-                 unique=False):
-        super(LoginNda, self).__init__(source_file, sep)
+    def __init__(self, source_file=BASE_PATH+'texts/login.txt',
+                 unique=False, how_many=10000):
+        super(LoginNda, self).__init__(source_file)
         self.unique = unique
+        self.how_many = how_many
 
     def obfuscate(self, value):
         text_lines = self.source
         if self.unique:
-            postf = str(int(md5(str(value)).hexdigest(), 16) % 1000)
+            postf = str(int(md5(str(value)).hexdigest(), 16) % self.how_many)
         else:
             postf = ''
         return text_lines[randint(0, len(text_lines)-1)].strip() + postf
