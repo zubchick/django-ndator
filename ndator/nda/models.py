@@ -3,7 +3,7 @@
 from django.core.management.base import CommandError
 from fields import (NdaField, IntegerNda, FloatFieldNda, BooleanNda, CharNda,
                     DateNda, DateTimeNda, TimeNda, EmailNda, IPAdressNda,
-                    NullBooleanNda, URLNda)
+                    NullBooleanNda, URLNda, SlugNda)
 from django.db.models import fields as mfields
 
 class NdaModel(object):
@@ -64,6 +64,7 @@ class NdaModel(object):
     @classmethod
     def map_fields(cls):
         """
+        mapping django.models to NdaModels
         Return dict {'field': NdaModelField instance, ...}
         """
         fields = cls.fields_for_nda()
@@ -82,8 +83,11 @@ class NdaModel(object):
             elif isinstance(f, mfields.BooleanField):
                 res[f.name] = BooleanNda()
 
-            elif isinstance(f, (mfields.CharField, mfields.SlugField)):
-                res[f.name] = CharNda(max_length=f.max_length, one_word=True)
+            elif isinstance(f, (mfields.CharField,)):
+                res[f.name] = CharNda(max_length=f.max_length)
+
+            elif isinstance(f, mfields.SlugField):
+                res[f.name] = SlugNda(max_length=f.max_length)
 
             elif isinstance(f, mfields.DateField):
                 res[f.name] = DateNda()
@@ -109,7 +113,7 @@ class NdaModel(object):
                 res[f.name] = NullBooleanNda()
 
             elif isinstance(f, mfields.TextField):
-                res[f.name] = CharNda(one_word=False)
+                res[f.name] = CharNda(max_length=300)
 
             elif isinstance(f, mfields.TimeField):
                 res[f.name] = TimeNda()

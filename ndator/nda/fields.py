@@ -9,14 +9,11 @@ from hashlib import md5
 
 
 BASE_PATH = os.path.split(os.path.abspath(__file__))[0]
-
 BASE_PATH = os.path.join(BASE_PATH, '../')
 
 
 class NdaField(object):
-    DOMAINS = ['example.com', 'test.ok', 'some.org',
-               'ololo.net', 'somebody.name', 'whatabout.me',
-               'yandex.ru', 'localhost']
+    DOMAINS = ['example.com', 'test.ok', 'ololo.gg', 'somebody.name', 'localhost.by']
 
     def __init__(self, source_file=None):
         if source_file:
@@ -60,19 +57,21 @@ class BooleanNda(NdaField):
 
 class CharNda(NdaField):
     def __init__(self, source_file=BASE_PATH+'texts/lorem.txt',
-                 min_length=None, max_length=None, one_word=True):
+                 min_length=None, max_length=None, words=0):
         super(CharNda, self).__init__(source_file)
         self.min = min_length
         self.max = max_length
-        self.one_word = one_word
+        self.words = words
 
     def obfuscate(self, value):
         text = '\n'.join(self.source)
 
-        if self.one_word:
-            words = text.split()
-            a = words[randint(0, len(words) - 1)]
-            return a
+        if self.words:
+            res = []
+            text = text.split()
+            for _ in xrange(self.words):
+                res.append(text[randint(0, len(text) - 1)])
+            return ' '.join(res)
 
         if self.min and self.max:
             res = text[:randint(self.min, self.max)]
@@ -81,9 +80,21 @@ class CharNda(NdaField):
         elif self.min:
             res = text[:randint(self.min, len(text))]
         else:
-            res = text[:randint(0, len(text))]
-
+            self.words = 2
+            res = CharNda.obfuscate(self, value)
         return res
+
+
+class SlugNda(CharNda):
+    def obfuscate(self, value):
+        self.max = self.max or 50
+        self.words = self.words or 2
+        text = '\n'.join(self.source).split()
+        sep = choice(['', '-', '_'])
+        res = []
+        for _ in xrange(self.words):
+            res.append(text[randint(0, len(text) - 1)])
+        return sep.join(res)[:self.max]
 
 
 class FirstNameNda(NdaField):

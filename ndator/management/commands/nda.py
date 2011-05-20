@@ -48,12 +48,14 @@ class Command(NoArgsCommand):
     def handle_noargs(self, **options):
         allauto = options.get('allauto')
         answ = ''
+        msg = ("At this step all information in models will be obfuscate"
+               "\nAre you realy shure? (yes/no): ")
+        answ = raw_input(msg).upper()
         while answ != 'YES':
-            answ = raw_input('Are you realy shure? (yes/no): ').upper()
             if answ == 'NO':
                 return
             elif answ != 'YES':
-                print 'type only yes or no'
+                answ = raw_input('Please enter either "yes" or "no": ').upper()
         else:
             print
 
@@ -93,13 +95,13 @@ class Command(NoArgsCommand):
 
 
         # display excluded
-        print 'Fields in models that did not obfuscate:\n'
+        print 'This fields was not obfuscated:'
         for name, items in excluded.items():
             print name
             for item in sorted(items):
                 print '    ' + item
             print
 
-        print 'Models that did not obfuscate:'
+        print 'Models that was not obfuscated:'
         for model in excluded_models:
             print model
