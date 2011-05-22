@@ -20,10 +20,9 @@ setup(
     description='Django models obfuscator',
     long_description=long_description,
     license='New BSD License',
+    install_requires=['setuptools'],
     packages=find_packages(),
-    package_data = {'ndator': ['texts/*.txt']},
     zip_safe=False,
-    include_package_data=True,
 
     classifiers=[
         'Framework :: Django',

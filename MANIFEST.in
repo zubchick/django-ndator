@@ -1,0 +1,4 @@
+include *.rst
+recursive-include ndator *.txt *.py
+prune ndator/.ropeproject
+prune ndator/*/.ropeproject
