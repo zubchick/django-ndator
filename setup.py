@@ -15,6 +15,7 @@ setup(
     license='New BSD License',
     install_requires=['setuptools'],
     packages=find_packages(),
+    include_package_data=True,
     zip_safe=False,
 
     classifiers=[

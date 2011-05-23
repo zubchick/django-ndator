@@ -1,4 +1,4 @@
 include *.rst
-recursive-include ndator *.txt *.py
-prune ndator/.ropeproject
-prune ndator/*/.ropeproject
+recursive-include ndator/texts *
+prune ndator/**/.ropeproject
+global-exclude *~
