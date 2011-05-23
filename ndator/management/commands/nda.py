@@ -6,7 +6,9 @@ from django.db import models
 from optparse import make_option
 from ndator.nda import NdaModel
 import inspect
+import sys
 
+out = sys.stdout
 
 def get_nda_models():
     """ Return list of NdaModel classes
@@ -83,9 +85,10 @@ class Command(NoArgsCommand):
 
                 # progressbar :)
                 if not i % div:
-                    print '.',
+                    out.write('.')
+                    out.flush()
             else:
-                print
+                out.write('\n')
 
         print
         # models and fields that didn't obfuscate
