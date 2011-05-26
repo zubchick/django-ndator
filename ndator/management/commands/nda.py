@@ -17,8 +17,9 @@ def get_nda_models():
     class_list = []
     try:
         import ndamodels
-    except ImportError:
-        raise CommandError("Create ndamodels.py in project dir or use --allauto option.")
+    except ImportError as e:
+        print 'Error: ' + str(e)
+        raise CommandError("Create valid ndamodels.py in project dir or use --allauto option.")
 
     for elem in dir(ndamodels):
         obj = getattr(ndamodels, elem)
