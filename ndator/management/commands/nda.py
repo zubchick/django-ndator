@@ -46,21 +46,25 @@ class Command(NoArgsCommand):
         make_option('--allauto', action='store_true', dest='allauto',
                     default=False, help='Try to make obfuscation with default'
                     'settings'),
+        make_option('--noinput', action='store_true', dest='noinput',
+                    default=False, help='Do NOT ask any questions before obfuscation'),
         )
 
     def handle_noargs(self, **options):
         allauto = options.get('allauto')
-        answ = ''
-        msg = ("At this step all information in models will be obfuscate"
-               "\nAre you realy shure? (yes/no): ")
-        answ = raw_input(msg).upper()
-        while answ != 'YES':
-            if answ == 'NO':
-                return
-            elif answ != 'YES':
-                answ = raw_input('Please enter either "yes" or "no": ').upper()
-        else:
-            print
+        
+        if not options.get('noinput'):
+            answ = ''
+            msg = ("At this step all information in models will be obfuscate"
+                   "\nAre you realy shure? (yes/no): ")
+            answ = raw_input(msg).upper()
+            while answ != 'YES':
+                if answ == 'NO':
+                    return
+                elif answ != 'YES':
+                    answ = raw_input('Please enter either "yes" or "no": ').upper()
+            else:
+                print
 
         if not allauto:
             models_for_nda = get_nda_models()
