@@ -4,32 +4,11 @@ from django.core.management.base import NoArgsCommand, CommandError
 from django.db import models
 
 from optparse import make_option
-from ndator.nda import NdaModel
-import inspect
+from ndator.nda import NdaModel, finder
 import sys
 
 out = sys.stdout
 
-def get_nda_models():
-    """ Return list of NdaModel classes
-    from ndamodels.py file
-    """
-    class_list = []
-    try:
-        import ndamodels
-    except ImportError as e:
-        print 'Error: ' + str(e)
-        raise CommandError("Create valid ndamodels.py in project dir or use --allauto option.")
-
-    for elem in dir(ndamodels):
-        obj = getattr(ndamodels, elem)
-
-        if (inspect.isclass(obj) and
-            issubclass(obj, NdaModel) and
-            obj is not NdaModel):
-            class_list.append(obj)
-
-    return class_list
 
 def autoconvert_to_nda(model):
     """ Auto convert django model to NdaModel """
@@ -67,7 +46,7 @@ class Command(NoArgsCommand):
                 print
 
         if not allauto:
-            models_for_nda = get_nda_models()
+            models_for_nda = finder.find_nda_models()
         else:
             models_for_nda = [autoconvert_to_nda(m) for m in models.get_models()]
 
