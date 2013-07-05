@@ -30,7 +30,7 @@ class IntegerNda(NdaField):
         self.max = max_value
 
     def obfuscate(self, value):
-        if not (self.min and self.max):
+        if self.min is None or self.max is None:
             len_ = len(str(value)) - 1
             res = (randint(10 ** len_, 10 ** (len_ + 1) - 1) *
                    (choice([-1, 1]) if value < 0 else 1))
