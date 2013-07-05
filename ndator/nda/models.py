@@ -6,11 +6,14 @@ from fields import (NdaField, IntegerNda, FloatFieldNda, BooleanNda, CharNda,
                     NullBooleanNda, URLNda, SlugNda)
 from django.db.models import fields as mfields
 
+
 class NdaModel(object):
 
     def __init__(self, instance=None):
         if not isinstance(instance, self.Meta.model):
-            raise Exception("`instance` parameter is not an instance of %s class" % self.__class__.__name__)
+            message = ("`instance` parameter is not an instance of %s class" %
+                       self.__class__.__name__)
+            raise Exception(message)
         self.instance = instance
 
     @classmethod
@@ -21,12 +24,12 @@ class NdaModel(object):
 
         if in Meta ``fields`` or/and ``exclude``:
 
-        ``fields`` is an optional list of field names. If provided, only the named
-        fields will be included in the returned fields.
+        ``fields`` is an optional list of field names. If provided,
+        only the named fields will be included in the returned fields.
 
         ``exclude`` is an optional list of field names. If provided, the named
-        fields will be excluded from the returned fields, even if they are listed
-        in the ``fields`` argument.
+        fields will be excluded from the returned fields, even if they
+        are listed in the ``fields`` argument.
         """
         try:
             model = cls.Meta.model
@@ -128,7 +131,7 @@ class NdaModel(object):
 
     def obfuscation(self):
         rules = self.map_fields()
-        for field, rule  in rules.items():
+        for field, rule in rules.items():
             attr = getattr(self.instance, field)
             setattr(self.instance, field, rule.obfuscate(attr))
         self.instance.save()

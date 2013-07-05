@@ -26,29 +26,33 @@ class Command(NoArgsCommand):
                     default=False, help='Try to make obfuscation with default'
                     'settings'),
         make_option('--noinput', action='store_true', dest='noinput',
-                    default=False, help='Do NOT ask any questions before obfuscation'),
+                    default=False, help='Do NOT ask any questions'
+                                        'before obfuscation'),
         )
 
     def handle_noargs(self, **options):
         allauto = options.get('allauto')
-        
+
         if not options.get('noinput'):
             answ = ''
-            msg = ("After this step all information in models will be obfuscated"
+            msg = ("After this step all information in models"
+                   " will be obfuscated"
                    "\nAre you realy sure? (yes/no): ")
             answ = raw_input(msg).upper()
             while answ != 'YES':
                 if answ == 'NO':
                     return
                 elif answ != 'YES':
-                    answ = raw_input('Please enter either "yes" or "no": ').upper()
+                    answ = raw_input('Please enter either "yes" or "no": ')
+                    answ = answ.upper()
             else:
                 print
 
         if not allauto:
             models_for_nda = finder.find_nda_models()
         else:
-            models_for_nda = [autoconvert_to_nda(m) for m in models.get_models()]
+            models_for_nda = [autoconvert_to_nda(m) for m
+                              in models.get_models()]
 
         excluded = {}
         for m in models_for_nda:
@@ -79,7 +83,6 @@ class Command(NoArgsCommand):
         all_models = set([m.__name__ for m in models.get_models()])
         use_models = set([m.Meta.model.__name__ for m in models_for_nda])
         excluded_models = all_models - use_models
-
 
         # display excluded
         print 'These fields were not obfuscated:'

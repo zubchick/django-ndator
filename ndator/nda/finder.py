@@ -10,8 +10,12 @@ from ndator.nda import NdaModel
 GLOBAL_MODULE_SETTING = 'NDATOR_GLOBAL_MODULE'
 GLOBAL_MODULE_DEFAULT = 'ndamodels'
 
+
 def _get_global_module():
-    """ Import and return global ndamodule from location specified in settings or from default one """
+    """
+    Import and return global ndamodels module from location specified
+    in settings. If not specified, use default location.
+    """
     if hasattr(settings, GLOBAL_MODULE_SETTING):
         module_specified = True
         module_name = getattr(settings, GLOBAL_MODULE_SETTING)
@@ -23,11 +27,16 @@ def _get_global_module():
         return import_module(module_name)
     except ImportError:
         if module_specified:
-            raise ImproperlyConfigured('Module "%s" specified in %s setting could not be imported'
-                                                            % (module_name, GLOBAL_MODULE_SETTING))
+            message = ('Module "%s" specified in %s setting could not '
+                       'be imported') % (module_name, GLOBAL_MODULE_SETTING)
+            raise ImproperlyConfigured(message)
+
 
 def _get_app_modules():
-    """ Collect and import all modules named "ndamodule" in every application package and return as a list """
+    """
+    Collect and import all modules named "ndamodule" in every
+    application package and return as a list.
+    """
     module_list = []
     for app_module in settings.INSTALLED_APPS:
         nda_module = '.'.join([app_module, 'ndamodels'])
@@ -37,6 +46,7 @@ def _get_app_modules():
             pass
     return module_list
 
+
 def _extract_models(module):
     """ Return list of NdaModel classes in specified module """
     class_list = []
@@ -44,8 +54,8 @@ def _extract_models(module):
         obj = getattr(module, elem)
 
         if (inspect.isclass(obj) and
-            issubclass(obj, NdaModel) and
-            obj is not NdaModel):
+                issubclass(obj, NdaModel)
+                and obj is not NdaModel):
             class_list.append(obj)
 
     return class_list
@@ -69,4 +79,3 @@ def find_nda_models():
             class_list.append(cls)
 
     return class_list
-

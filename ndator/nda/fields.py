@@ -13,7 +13,8 @@ BASE_PATH = os.path.join(BASE_PATH, '../')
 
 
 class NdaField(object):
-    DOMAINS = ['example.com', 'test.ok', 'ololo.gg', 'somebody.name', 'localhost.by']
+    DOMAINS = ['example.com', 'test.ok', 'ololo.gg', 'somebody.name',
+               'localhost.by']
 
     def __init__(self, source_file=None):
         if source_file:
@@ -185,7 +186,7 @@ class URLNda(NdaField):
     def obfuscate(self, value):
         value = value or ''
         h = md5(str(datetime.now()) + value).hexdigest()[:16]
-        return u'http://%s/%s' %(choice(self.DOMAINS), h)
+        return u'http://%s/%s' % (choice(self.DOMAINS), h)
 
 
 class HashNda(NdaField):
