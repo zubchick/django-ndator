@@ -4,32 +4,11 @@ from django.core.management.base import NoArgsCommand, CommandError
 from django.db import models
 
 from optparse import make_option
-from ndator.nda import NdaModel
-import inspect
+from ndator.nda import NdaModel, finder
 import sys
 
 out = sys.stdout
 
-def get_nda_models():
-    """ Return list of NdaModel classes
-    from ndamodels.py file
-    """
-    class_list = []
-    try:
-        import ndamodels
-    except ImportError as e:
-        print 'Error: ' + str(e)
-        raise CommandError("Create valid ndamodels.py in project dir or use --allauto option.")
-
-    for elem in dir(ndamodels):
-        obj = getattr(ndamodels, elem)
-
-        if (inspect.isclass(obj) and
-            issubclass(obj, NdaModel) and
-            obj is not NdaModel):
-            class_list.append(obj)
-
-    return class_list
 
 def autoconvert_to_nda(model):
     """ Auto convert django model to NdaModel """
@@ -46,26 +25,34 @@ class Command(NoArgsCommand):
         make_option('--allauto', action='store_true', dest='allauto',
                     default=False, help='Try to make obfuscation with default'
                     'settings'),
+        make_option('--noinput', action='store_true', dest='noinput',
+                    default=False, help='Do NOT ask any questions'
+                                        'before obfuscation'),
         )
 
     def handle_noargs(self, **options):
         allauto = options.get('allauto')
-        answ = ''
-        msg = ("At this step all information in models will be obfuscate"
-               "\nAre you realy shure? (yes/no): ")
-        answ = raw_input(msg).upper()
-        while answ != 'YES':
-            if answ == 'NO':
-                return
-            elif answ != 'YES':
-                answ = raw_input('Please enter either "yes" or "no": ').upper()
-        else:
-            print
+
+        if not options.get('noinput'):
+            answ = ''
+            msg = ("After this step all information in models"
+                   " will be obfuscated"
+                   "\nAre you realy sure? (yes/no): ")
+            answ = raw_input(msg).upper()
+            while answ != 'YES':
+                if answ == 'NO':
+                    return
+                elif answ != 'YES':
+                    answ = raw_input('Please enter either "yes" or "no": ')
+                    answ = answ.upper()
+            else:
+                print
 
         if not allauto:
-            models_for_nda = get_nda_models()
+            models_for_nda = finder.find_nda_models()
         else:
-            models_for_nda = [autoconvert_to_nda(m) for m in models.get_models()]
+            models_for_nda = [autoconvert_to_nda(m) for m
+                              in models.get_models()]
 
         excluded = {}
         for m in models_for_nda:
@@ -97,15 +84,14 @@ class Command(NoArgsCommand):
         use_models = set([m.Meta.model.__name__ for m in models_for_nda])
         excluded_models = all_models - use_models
 
-
         # display excluded
-        print 'This fields was not obfuscated:'
+        print 'These fields were not obfuscated:'
         for name, items in excluded.items():
             print name
             for item in sorted(items):
                 print '    ' + item
             print
 
-        print 'Models that was not obfuscated:'
+        print 'Models that were not obfuscated:'
         for model in excluded_models:
             print model

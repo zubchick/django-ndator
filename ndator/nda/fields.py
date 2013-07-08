@@ -13,7 +13,8 @@ BASE_PATH = os.path.join(BASE_PATH, '../')
 
 
 class NdaField(object):
-    DOMAINS = ['example.com', 'test.ok', 'ololo.gg', 'somebody.name', 'localhost.by']
+    DOMAINS = ['example.com', 'test.ok', 'ololo.gg', 'somebody.name',
+               'localhost.by']
 
     def __init__(self, source_file=None):
         if source_file:
@@ -30,7 +31,7 @@ class IntegerNda(NdaField):
         self.max = max_value
 
     def obfuscate(self, value):
-        if not (self.min and self.max):
+        if self.min is None or self.max is None:
             len_ = len(str(value)) - 1
             res = (randint(10 ** len_, 10 ** (len_ + 1) - 1) *
                    (choice([-1, 1]) if value < 0 else 1))
@@ -185,7 +186,7 @@ class URLNda(NdaField):
     def obfuscate(self, value):
         value = value or ''
         h = md5(str(datetime.now()) + value).hexdigest()[:16]
-        return u'http://%s/%s' %(choice(self.DOMAINS), h)
+        return u'http://%s/%s' % (choice(self.DOMAINS), h)
 
 
 class HashNda(NdaField):
