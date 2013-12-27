@@ -1,3 +1,5 @@
 *flymake*
 ropeproject/
 *.pyc
+dist/
+django_ndator.egg-info/
