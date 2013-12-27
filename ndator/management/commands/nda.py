@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 
 from optparse import make_option
@@ -16,22 +16,28 @@ def autoconvert_to_nda(model):
     return type(model.__name__ + 'Nda', (NdaModel,), {'Meta': meta})
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = ""
     requires_model_validation = False
     db_module = 'django.db'
 
-    option_list = NoArgsCommand.option_list + (
+    option_list = BaseCommand.option_list + (
         make_option('--allauto', action='store_true', dest='allauto',
                     default=False, help='Try to make obfuscation with default'
                     'settings'),
         make_option('--noinput', action='store_true', dest='noinput',
-                    default=False, help='Do NOT ask any questions'
+                    default=False, help='Do NOT ask any questions '
                                         'before obfuscation'),
         )
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
         allauto = options.get('allauto')
+        requested_models = args
+
+        if requested_models and allauto:
+            msg = ("YOU SHALL NOT PASS --allauto and "
+                   "Nda Model names at the same time")
+            raise CommandError(msg)
 
         if not options.get('noinput'):
             msg = ("After this step all information in models"
@@ -48,6 +54,10 @@ class Command(NoArgsCommand):
 
         if not allauto:
             models_for_nda = finder.find_nda_models()
+            models_for_nda = filter(
+                lambda nda_model: nda_model.__name__ in requested_models,
+                models_for_nda
+            )
         else:
             models_for_nda = [autoconvert_to_nda(m) for m
                               in models.get_models()]
