@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.core.management.base import NoArgsCommand, CommandError
+from django.core.management.base import NoArgsCommand
 from django.db import models
 
 from optparse import make_option
@@ -34,17 +34,15 @@ class Command(NoArgsCommand):
         allauto = options.get('allauto')
 
         if not options.get('noinput'):
-            answ = ''
             msg = ("After this step all information in models"
                    " will be obfuscated"
                    "\nAre you realy sure? (yes/no): ")
-            answ = raw_input(msg).upper()
-            while answ != 'YES':
-                if answ == 'NO':
+            answer = raw_input(msg).upper()
+            while answer != 'YES':
+                if answer == 'NO':
                     return
-                elif answ != 'YES':
-                    answ = raw_input('Please enter either "yes" or "no": ')
-                    answ = answ.upper()
+                answer = raw_input('Please enter either "yes" or "no": ')
+                answer = answer.upper()
             else:
                 print
 
